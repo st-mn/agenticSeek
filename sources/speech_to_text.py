@@ -1,4 +1,5 @@
 from colorama import Fore
+import pyaudio
 from typing import List, Tuple, Type, Dict
 import queue
 import threading
