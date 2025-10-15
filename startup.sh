@@ -1,4 +1,4 @@
-echo "WORK_DIR=/workspaces/agenticSeek" > .env && \
+#!/bin/bash
 pip install uvicorn && \
 pip install aiofiles && \
 pip install fastapi && \
