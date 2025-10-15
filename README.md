@@ -1,3 +1,15 @@
+### STARTUP
+
+```sh
+echo "WORK_DIR=/workspaces/agenticSeek" > .env && \
+./start_services.sh full && \
+sudo apt-get update && \
+sudo apt-get install -y xdg-utils && \
+curl -fsSL https://ollama.com/install.sh | sh && \
+ollama serve && \
+xdg-open http://localhost:3000
+```
+
 # AgenticSeek: Private, Local Manus Alternative.
 
 <p align="center">
@@ -10,17 +22,7 @@
 
 [![Visit AgenticSeek](https://img.shields.io/static/v1?label=Website&message=AgenticSeek&color=blue&style=flat-square)](https://fosowl.github.io/agenticSeek.html) ![License](https://img.shields.io/badge/license-GPL--3.0-green) [![Discord](https://img.shields.io/badge/Discord-Join%20Us-7289DA?logo=discord&logoColor=white)](https://discord.gg/8hGDaME3TC) [![Twitter](https://img.shields.io/twitter/url/https/twitter.com/fosowl.svg?style=social&label=Update%20%40Fosowl)](https://x.com/Martin993886460) [![GitHub stars](https://img.shields.io/github/stars/Fosowl/agenticSeek?style=social)](https://github.com/Fosowl/agenticSeek/stargazers)
 
-### STARTUP
 
-```sh
-echo "WORK_DIR=/workspaces/agenticSeek" > .env && \
-./start_services.sh full && \
-sudo apt-get update && \
-sudo apt-get install -y xdg-utils && \
-curl -fsSL https://ollama.com/install.sh | sh && \
-ollama serve && \
-xdg-open http://localhost:3000
-```
 
 ### Why AgenticSeek ?
 
