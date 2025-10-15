@@ -7,8 +7,8 @@ python3 api.py && \
 sudo apt-get update && \
 sudo apt-get install -y xdg-utils && \
 curl -fsSL https://ollama.com/install.sh | sh && \
-ollama serve && \
 export OLLAMA_HOST=0.0.0.0:11434 && \
+ollama serve && \
 xdg-open http://localhost:3000
 ```
 
