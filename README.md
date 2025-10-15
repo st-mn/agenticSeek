@@ -2,11 +2,13 @@
 
 ```sh
 echo "WORK_DIR=/workspaces/agenticSeek" > .env && \
+python3 api.py && \
 ./start_services.sh full && \
 sudo apt-get update && \
 sudo apt-get install -y xdg-utils && \
 curl -fsSL https://ollama.com/install.sh | sh && \
 ollama serve && \
+export OLLAMA_HOST=0.0.0.0:11434 && \
 xdg-open http://localhost:3000
 ```
 
