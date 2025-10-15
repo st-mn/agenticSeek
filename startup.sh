@@ -1,4 +1,5 @@
 #!/bin/bash
+mv .env.example .env && \
 pip install uvicorn && \
 pip install aiofiles && \
 pip install fastapi && \
