@@ -1,5 +1,6 @@
 #!/bin/bash
-mv .env.example .env && \
+# Only move .env.example to .env if .env does not exist
+[ -f .env ] || mv .env.example .env && \
 pip install uvicorn && \
 pip install aiofiles && \
 pip install fastapi && \
