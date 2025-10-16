@@ -4,10 +4,10 @@ import axios from "axios";
 import "./App.css";
 import { ThemeToggle } from "./components/ThemeToggle";
 import { ResizableLayout } from "./components/ResizableLayout";
+import { BACKEND_URL, findWorkingBackendUrl } from "./config";
 import faviconPng from "./logo.png";
 
-const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
-console.log("Using backend URL:", BACKEND_URL);
+console.log("Initial backend URL:", BACKEND_URL);
 
 function App() {
   const [query, setQuery] = useState("");
@@ -19,11 +19,12 @@ function App() {
   const [isOnline, setIsOnline] = useState(false);
   const [status, setStatus] = useState("Agents ready");
   const [expandedReasoning, setExpandedReasoning] = useState(new Set());
+  const [backendUrl, setBackendUrl] = useState(BACKEND_URL);
   const messagesEndRef = useRef(null);
 
   const fetchLatestAnswer = useCallback(async () => {
     try {
-      const res = await axios.get(`${BACKEND_URL}/latest_answer`);
+      const res = await axios.get(`${backendUrl}/latest_answer`);
       const data = res.data;
 
       updateData(data);
@@ -54,7 +55,19 @@ function App() {
     } catch (error) {
       console.error("Error fetching latest answer:", error);
     }
-  }, [messages]);
+  }, [messages, backendUrl]);
+
+  // Initialize backend URL on startup
+  useEffect(() => {
+    const initializeBackend = async () => {
+      console.log('🔍 Finding working backend URL...');
+      const workingUrl = await findWorkingBackendUrl();
+      setBackendUrl(workingUrl);
+      console.log('✅ Backend URL set to:', workingUrl);
+    };
+    
+    initializeBackend();
+  }, []);
 
   useEffect(() => {
     const intervalId = setInterval(() => {
@@ -63,11 +76,11 @@ function App() {
       fetchScreenshot();
     }, 3000);
     return () => clearInterval(intervalId);
-  }, [fetchLatestAnswer]);
+  }, [fetchLatestAnswer, backendUrl]);
 
   const checkHealth = async () => {
     try {
-      await axios.get(`${BACKEND_URL}/health`);
+      await axios.get(`${backendUrl}/health`);
       setIsOnline(true);
       console.log("System is online");
     } catch {
@@ -80,7 +93,7 @@ function App() {
     try {
       const timestamp = new Date().getTime();
       const res = await axios.get(
-        `${BACKEND_URL}/screenshots/updated_screen.png?timestamp=${timestamp}`,
+        `${backendUrl}/screenshots/updated_screen.png?timestamp=${timestamp}`,
         {
           responseType: "blob",
         }
@@ -149,7 +162,7 @@ function App() {
     setIsLoading(false);
     setError(null);
     try {
-      await axios.get(`${BACKEND_URL}/stop`);
+      await axios.get(`${backendUrl}/stop`);
       setStatus("Requesting stop...");
     } catch (err) {
       console.error("Error stopping the agent:", err);
@@ -170,7 +183,7 @@ function App() {
     try {
       console.log("Sending query:", query);
       setQuery("waiting for response...");
-      const res = await axios.post(`${BACKEND_URL}/query`, {
+      const res = await axios.post(`${backendUrl}/query`, {
         query,
         tts_enabled: false,
       });
@@ -218,6 +231,9 @@ function App() {
             <div className="status-dot"></div>
             <span className="status-text">
               {isOnline ? "Online" : "Offline"}
+            </span>
+            <span className="backend-url" style={{fontSize: '0.8em', opacity: 0.7}}>
+              {backendUrl}
             </span>
           </div>
         </div>

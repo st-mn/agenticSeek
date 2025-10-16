@@ -1,10 +1,26 @@
 import readline
 from typing import List, Tuple, Type, Dict
 
-from sources.text_to_speech import Speech
+try:
+    from sources.text_to_speech import Speech
+    TTS_AVAILABLE = True
+except ImportError:
+    print("TTS module not available, continuing without speech synthesis")
+    TTS_AVAILABLE = False
+    Speech = None
+
 from sources.utility import pretty_print, animate_thinking
 from sources.router import AgentRouter
-from sources.speech_to_text import AudioTranscriber, AudioRecorder
+
+try:
+    from sources.speech_to_text import AudioTranscriber, AudioRecorder
+    STT_AVAILABLE = True
+except ImportError:
+    print("STT module not available, continuing without speech recognition")
+    STT_AVAILABLE = False
+    AudioTranscriber = None
+    AudioRecorder = None
+
 import threading
 
 
@@ -49,22 +65,29 @@ class Interaction:
 
     def initialize_tts(self):
         """Initialize TTS."""
-        if not self.speech:
+        if not self.speech and TTS_AVAILABLE and Speech:
             animate_thinking("Initializing text-to-speech...", color="status")
             self.speech = Speech(enable=self.tts_enabled, language=self.get_spoken_language(), voice_idx=1)
+        elif not TTS_AVAILABLE:
+            print("TTS not available - speech synthesis disabled")
+            self.tts_enabled = False
 
     def initialize_stt(self):
         """Initialize STT."""
         if not self.transcriber or not self.recorder:
-            animate_thinking("Initializing speech recognition...", color="status")
-            self.transcriber = AudioTranscriber(self.ai_name, verbose=False)
-            self.recorder = AudioRecorder()
+            if STT_AVAILABLE and AudioTranscriber and AudioRecorder:
+                animate_thinking("Initializing speech recognition...", color="status")
+                self.transcriber = AudioTranscriber(self.ai_name, verbose=False)
+                self.recorder = AudioRecorder()
+            else:
+                print("STT not available - speech recognition disabled")
+                self.stt_enabled = False
     
     def emit_status(self):
         """Print the current status of agenticSeek."""
         if self.stt_enabled:
             pretty_print(f"Text-to-speech trigger is {self.ai_name}", color="status")
-        if self.tts_enabled:
+        if self.tts_enabled and self.speech:
             self.speech.speak("Hello, we are online and ready. What can I do for you ?")
         pretty_print("AgenticSeek is ready.", color="status")
     
@@ -184,7 +207,7 @@ class Interaction:
         """Speak the answer to the user in a non-blocking thread."""
         if self.last_query is None:
             return
-        if self.tts_enabled and self.last_answer and self.speech:
+        if self.tts_enabled and self.last_answer and self.speech and TTS_AVAILABLE:
             def speak_in_thread(speech_instance, text):
                 speech_instance.speak(text)
             thread = threading.Thread(target=speak_in_thread, args=(self.speech, self.last_answer))

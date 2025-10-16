@@ -95,11 +95,18 @@ def initialize_system():
     )
     logger.info(f"Provider initialized: {provider.provider_name} ({provider.model})")
 
-    browser = Browser(
-        create_driver(headless=headless, stealth_mode=stealth_mode, lang=languages[0]),
-        anticaptcha_manual_install=stealth_mode
-    )
-    logger.info("Browser initialized")
+    # Try to initialize browser, but don't fail if it doesn't work
+    browser = None
+    try:
+        browser = Browser(
+            create_driver(headless=headless, stealth_mode=stealth_mode, lang=languages[0]),
+            anticaptcha_manual_install=stealth_mode
+        )
+        logger.info("Browser initialized")
+    except Exception as e:
+        logger.warning(f"Failed to initialize browser: {str(e)}")
+        logger.info("Continuing without browser - browser-dependent agents will be disabled")
+        browser = None
 
     agents = [
         CasualAgent(
@@ -108,19 +115,14 @@ def initialize_system():
             provider=provider, verbose=False
         ),
         CoderAgent(
-            name="coder",
+            name="Coder",
             prompt_path=f"prompts/{personality_folder}/coder_agent.txt",
             provider=provider, verbose=False
         ),
         FileAgent(
-            name="File Agent",
+            name="File",
             prompt_path=f"prompts/{personality_folder}/file_agent.txt",
             provider=provider, verbose=False
-        ),
-        BrowserAgent(
-            name="Browser",
-            prompt_path=f"prompts/{personality_folder}/browser_agent.txt",
-            provider=provider, verbose=False, browser=browser
         ),
         PlannerAgent(
             name="Planner",
@@ -128,6 +130,16 @@ def initialize_system():
             provider=provider, verbose=False, browser=browser
         )
     ]
+    
+    # Only add BrowserAgent if browser is available
+    if browser is not None:
+        agents.append(
+            BrowserAgent(
+                name="Browser",
+                prompt_path=f"prompts/{personality_folder}/browser_agent.txt",
+                provider=provider, verbose=False, browser=browser
+            )
+        )
     logger.info("Agents initialized")
 
     interaction = Interaction(
