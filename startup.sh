@@ -44,6 +44,31 @@ curl -fsSL https://ollama.com/install.sh | sh && \
 export OLLAMA_HOST=0.0.0.0:11434 && \
 ollama serve & \
 sleep 5 && \
+
+# Check if running in GitHub Codespaces and setup port forwarding
+if [ -n "$CODESPACE_NAME" ]; then
+    echo "Detected GitHub Codespace environment. Setting up port forwarding..."
+    
+    # Install GitHub CLI if not already installed
+    if ! command -v gh &> /dev/null; then
+        echo "Installing GitHub CLI..."
+        curl -fsSL https://cli.github.com/packages/githubcli-archive-keyring.gpg | sudo dd of=/usr/share/keyrings/githubcli-archive-keyring.gpg
+        echo "deb [arch=$(dpkg --print-architecture) signed-by=/usr/share/keyrings/githubcli-archive-keyring.gpg] https://cli.github.com/packages stable main" | sudo tee /etc/apt/sources.list.d/github-cli.list > /dev/null
+        sudo apt update
+        sudo apt install gh -y
+    fi
+    
+    # Wait a moment for services to start
+    sleep 10 && \
+    
+    # Make ports public using gh CLI (this will run in background)
+    (sleep 15 && gh codespace ports visibility 7777:public --codespace $CODESPACE_NAME > /dev/null 2>&1 &) && \
+    (sleep 15 && gh codespace ports visibility 3000:public --codespace $CODESPACE_NAME > /dev/null 2>&1 &) && \
+    (sleep 15 && gh codespace ports visibility 11434:public --codespace $CODESPACE_NAME > /dev/null 2>&1 &) && \
+    
+    echo "Port forwarding setup initiated for ports 7777, 3000, and 11434"
+fi
+
 ./start_services.sh full & \
 sleep 3 && \
 xdg-open http://localhost:3000
