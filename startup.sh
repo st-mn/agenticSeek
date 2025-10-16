@@ -61,6 +61,28 @@ fi
 
 echo "LLM optimization complete - configured for optimal response times" && \
 
+# Fix frontend timeout issue that causes "Unable to get a response"
+echo "Fixing frontend timeout configuration..."
+
+# Create a patch to fix the axios timeout issue
+cat > fix_frontend_timeout.sh << 'EOF'
+#!/bin/bash
+cd frontend/agentic-seek-front/src
+
+# Add timeout to the axios post request
+sed -i '/const res = await axios.post.*query.*{/,/});/{
+    /});/{
+        i\      }, {\
+        i\        timeout: 120000 // 2 minutes timeout for LLM processing
+    }
+}' App.js
+
+echo "Frontend timeout fix applied"
+EOF
+
+chmod +x fix_frontend_timeout.sh
+./fix_frontend_timeout.sh
+
 # Check if running in GitHub Codespaces and setup port forwarding
 if [ -n "$CODESPACE_NAME" ]; then
     echo "Detected GitHub Codespace environment. Setting up port forwarding..."
@@ -85,6 +107,24 @@ if [ -n "$CODESPACE_NAME" ]; then
     echo "Port forwarding setup initiated for ports 7777, 3000, and 11434"
 fi
 
+# Start services with monitoring
 ./start_services.sh full & \
+
+# Create API monitoring script to restart if it crashes
+cat > monitor_api.sh << 'EOF'
+#!/bin/bash
+while true; do
+    if ! pgrep -f "python3 api.py" > /dev/null; then
+        echo "$(date): API server not running, restarting..."
+        cd /workspaces/agenticSeek
+        python3 api.py &
+    fi
+    sleep 10
+done
+EOF
+chmod +x monitor_api.sh
+./monitor_api.sh &
+
+echo "AgenticSeek started with API monitoring enabled"
 sleep 3 && \
 xdg-open http://localhost:3000
