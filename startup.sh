@@ -1,6 +1,19 @@
 #!/bin/bash
-# Only move .env.example to .env if .env does not exist
-[ -f .env ] || mv .env.example .env && \
+# Create or update the .env file with required environment variables
+cat > .env << 'EOF'
+SEARXNG_BASE_URL="http://searxng:8080"
+REDIS_BASE_URL="redis://redis:6379/0"
+WORK_DIR="/workspaces/agenticSeek"
+OLLAMA_PORT="11434"
+LM_STUDIO_PORT="1234"
+CUSTOM_ADDITIONAL_LLM_PORT="11435"
+OPENAI_API_KEY='optional'
+DEEPSEEK_API_KEY='optional'
+OPENROUTER_API_KEY='optional'
+TOGETHER_API_KEY='optional'
+GOOGLE_API_KEY='optional'
+ANTHROPIC_API_KEY='optional'
+EOF
 pip install uvicorn && \
 pip install aiofiles && \
 pip install fastapi && \
