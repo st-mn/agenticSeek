@@ -45,6 +45,22 @@ export OLLAMA_HOST=0.0.0.0:11434 && \
 ollama serve & \
 sleep 5 && \
 
+# Download and configure faster LLM model for better performance
+echo "Setting up optimized LLM configuration for faster responses..."
+
+# Try to pull the fastest model first, fallback to medium if needed
+if ollama pull llama3.2:1b; then
+    echo "Successfully pulled llama3.2:1b (fastest model)"
+    sed -i 's/provider_model = .*/provider_model = llama3.2:1b/' config.ini
+elif ollama pull llama3.2:3b; then
+    echo "Successfully pulled llama3.2:3b (balanced model)"
+    sed -i 's/provider_model = .*/provider_model = llama3.2:3b/' config.ini
+else
+    echo "Warning: Could not pull optimized models, keeping existing configuration"
+fi
+
+echo "LLM optimization complete - configured for optimal response times" && \
+
 # Check if running in GitHub Codespaces and setup port forwarding
 if [ -n "$CODESPACE_NAME" ]; then
     echo "Detected GitHub Codespace environment. Setting up port forwarding..."
